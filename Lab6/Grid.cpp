@@ -110,10 +110,10 @@ void Grid::updateTileCost()
 	for (int index = 0; index < NUMBER_OF_TILES; index++)
 	{
 		int cost = m_tileGrid[index].getType() == TileType::Obstacle ? INT_MAX : -1;
-		m_tileGrid[index].setCost(cost);
+		m_tileGrid[index].updateCost(cost);
 	}
 	m_highestCost = -1;
-	m_tileGrid[m_goalIndex].setCost(0);
+	m_tileGrid[m_goalIndex].updateCost(0);
 	std::vector<int> neighbours = getValidNeighbours(m_goalIndex);
 	while (!neighbours.empty())
 	{
@@ -126,7 +126,7 @@ void Grid::updateTileCost()
 	{
 		if (m_tileGrid[index].getCost() == -1)
 		{
-			m_tileGrid[index].setCost(INT_MAX);
+			m_tileGrid[index].updateCost(INT_MAX);
 		}
 		float blue;
 		float cost = m_tileGrid[index].getCost();
@@ -141,7 +141,7 @@ void Grid::updateTileCost()
 
 
 		if (blue < 45) blue = 45;
-		m_tileGrid[index].setEmptyTileColour(sf::Color{ 0,0,sf::Uint8(blue),255 });
+		m_tileGrid[index].updateColour(sf::Color{ 0,0,sf::Uint8(blue),255 });
 		handleFlowFieldNeighbours(index);
 	}
 
@@ -168,8 +168,8 @@ std::vector<int> Grid::getValidNeighbours(int t_index)
 	{
 		if (neighbourIndexArray[index] > -1 && neighbourIndexArray[index] < NUMBER_OF_TILES)
 		{
-			sf::Vector2f currentPosition = m_tileGrid[t_index].getPosition();
-			sf::Vector2f neighbourPosition = m_tileGrid[neighbourIndexArray[index]].getPosition();
+			sf::Vector2f currentPosition = m_tileGrid[t_index].getCentreOfTile();
+			sf::Vector2f neighbourPosition = m_tileGrid[neighbourIndexArray[index]].getCentreOfTile();
 			float distanceBetween = sqrt(std::pow((neighbourPosition.x - currentPosition.x), 2) + std::pow((neighbourPosition.y - currentPosition.y), 2));
 			if (distanceBetween <= m_tileGrid[neighbourIndexArray[index]].getSize().x * 1.5)
 			{
@@ -180,7 +180,7 @@ std::vector<int> Grid::getValidNeighbours(int t_index)
 					{
 						m_highestCost = cost;
 					}
-					m_tileGrid[neighbourIndexArray[index]].setCost(cost);
+					m_tileGrid[neighbourIndexArray[index]].updateCost(cost);
 					neighbours.push_back(neighbourIndexArray[index]);
 				}
 			}
@@ -233,15 +233,15 @@ void Grid::handleFlowFieldNeighbours(int t_index)
 		{
 			if (neighbourArray[index] > -1 && neighbourArray[index] < NUMBER_OF_TILES)
 			{
-				sf::Vector2f currentPosition = m_tileGrid[t_index].getPosition();
-				sf::Vector2f neighbourPosition = m_tileGrid[neighbourArray[index]].getPosition();
+				sf::Vector2f currentPosition = m_tileGrid[t_index].getCentreOfTile();
+				sf::Vector2f neighbourPosition = m_tileGrid[neighbourArray[index]].getCentreOfTile();
 				float distanceBetween = sqrt(std::pow((neighbourPosition.x - currentPosition.x), 2) + std::pow((neighbourPosition.y - currentPosition.y), 2));
 				if (distanceBetween <= m_tileGrid[neighbourArray[index]].getSize().x * 1.5)
 				{
 					int neighbourCost = m_tileGrid[neighbourArray[index]].getCost();
 					if (neighbourCost != INT_MAX && neighbourCost != -1)
 					{
-						float closestCost = (neighbourCost * 100) + distanceFormula(m_tileGrid[m_goalIndex].getPosition(), m_tileGrid[neighbourArray[index]].getPosition());
+						float closestCost = (neighbourCost * 100) + distanceFormula(m_tileGrid[m_goalIndex].getCentreOfTile(), m_tileGrid[neighbourArray[index]].getCentreOfTile());
 						if (closestCost < heursticCost)
 						{
 							heursticCost = closestCost;
@@ -307,8 +307,8 @@ void Grid::resetBoard()
 		{
 			m_tileGrid[index].updateType(TileType::Empty);
 		}
-		m_tileGrid[index].setCost(-1);
-		m_tileGrid[index].setEmptyTileColour(sf::Color::Blue);
+		m_tileGrid[index].updateCost(-1);
+		m_tileGrid[index].updateColour(sf::Color::Blue);
 		m_goalIndex = -1;
 		m_startIndex = -1;
 		m_tileGrid[index].updateFlowField(Direction::None);
